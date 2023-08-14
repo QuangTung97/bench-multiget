@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package multiget;
+
+option go_package = "bench-multiget/pb;pb";
+
+message Product {
+  string sku = 1;
+  string name = 2;
+  string desc = 3;
+  repeated Attribute attributes = 4;
+  Brand brand = 5;
+}
+
+message Attribute {
+  int64 id = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message Brand {
+  string code = 1;
+  string name = 2;
+}
+
+
