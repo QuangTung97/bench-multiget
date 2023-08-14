@@ -8,7 +8,6 @@ import (
 	"github.com/QuangTung97/memproxy"
 	"github.com/QuangTung97/memproxy/item"
 	"github.com/jmoiron/sqlx"
-	"google.golang.org/protobuf/proto"
 	"sync/atomic"
 )
 
@@ -39,7 +38,7 @@ func (p ProductCacheValue) GetKey() ProductCacheKey {
 }
 
 func (p ProductCacheValue) Marshal() ([]byte, error) {
-	return proto.Marshal(p.PB)
+	return p.PB.Marshal()
 }
 
 func (k ProductCacheKey) String() string {
@@ -48,7 +47,7 @@ func (k ProductCacheKey) String() string {
 
 func unmarshalProduct(data []byte) (ProductCacheValue, error) {
 	var p pb.Product
-	err := proto.Unmarshal(data, &p)
+	err := p.Unmarshal(data)
 	if err != nil {
 		return ProductCacheValue{}, err
 	}

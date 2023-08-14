@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/QuangTung97/memproxy v0.5.3-0.20230725024621-d06ef9c0b1ad
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/golang/protobuf v1.5.0
 	github.com/jmoiron/sqlx v1.3.5
-	google.golang.org/protobuf v1.31.0
 )
 
 require (
@@ -29,4 +29,5 @@ require (
 	golang.org/x/perf v0.0.0-20230113213139-801c7ef9e5c5 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 )

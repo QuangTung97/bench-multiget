@@ -99,7 +99,7 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 	const numSkusPerBatch = 20
 	const numBatches = numProducts / numSkusPerBatch
 
-	const numLoops = 2_000
+	const numLoops = 10_000
 
 	start := time.Now()
 	var wg sync.WaitGroup
