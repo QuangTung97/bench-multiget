@@ -1,0 +1,45 @@
+{
+  "properties": {
+    "sku": {
+      "type": "keyword"
+    },
+    "name": {
+      "type": "text"
+    },
+    "display_name": {
+      "type": "text"
+    },
+    "desc": {
+      "type": "text",
+      "index": false
+    },
+    "attributes": {
+      "properties": {
+        "id": {
+          "type": "keyword"
+        },
+        "code": {
+          "type": "keyword"
+        },
+        "name": {
+          "type": "text",
+          "index": false
+        }
+      }
+    },
+    "brand": {
+      "properties": {
+        "id": {
+          "type": "keyword"
+        },
+        "code": {
+          "type": "keyword"
+        },
+        "name": {
+          "type": "text",
+          "index": false
+        }
+      }
+    }
+  }
+}

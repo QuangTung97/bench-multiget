@@ -7,9 +7,10 @@ option go_package = "bench-multiget/pb;pb";
 message Product {
   string sku = 1;
   string name = 2;
-  string desc = 3;
-  repeated Attribute attributes = 4;
-  Brand brand = 5;
+  string display_name = 3;
+  string desc = 4;
+  repeated Attribute attributes = 5;
+  Brand brand = 6;
 }
 
 message Attribute {
@@ -19,8 +20,9 @@ message Attribute {
 }
 
 message Brand {
-  string code = 1;
-  string name = 2;
+  int64 id = 1;
+  string code = 2;
+  string name = 3;
 }
 
 

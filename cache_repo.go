@@ -3,11 +3,13 @@ package main
 import (
 	"bench-multiget/pb"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/QuangTung97/memproxy"
 	"github.com/QuangTung97/memproxy/item"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
+	"sync/atomic"
 )
 
 type CacheRepo struct {
@@ -65,7 +67,12 @@ func mapSlice[A, B any](input []A, fn func(e A) B) []B {
 
 type GetProductFunc = func() (ProductCacheValue, error)
 
-func (r *CacheRepo) GetProducts(ctx context.Context, skus []string) []*pb.Product {
+type Stats struct {
+	HitCount  atomic.Uint64
+	MissCount atomic.Uint64
+}
+
+func (r *CacheRepo) GetProducts(ctx context.Context, skus []string, globalStats *Stats) []*pb.Product {
 	pipe := r.client.Pipeline(ctx)
 	defer pipe.Finish()
 
@@ -79,6 +86,12 @@ func (r *CacheRepo) GetProducts(ctx context.Context, skus []string) []*pb.Produc
 			Sku: sku,
 		})
 	})
+
+	defer func() {
+		stats := productCache.GetStats()
+		globalStats.MissCount.Add(stats.FillCount)
+		globalStats.HitCount.Add(stats.HitCount)
+	}()
 
 	return mapSlice(fnList, func(fn GetProductFunc) *pb.Product {
 		resp, err := fn()
@@ -118,7 +131,7 @@ SELECT sku, content FROM products WHERE sku IN (?)
 	}
 	return mapSlice(result, func(p ProductContent) ProductCacheValue {
 		var product pb.Product
-		err := proto.Unmarshal(p.Content, &product)
+		err := json.Unmarshal(p.Content, &product)
 		if err != nil {
 			panic(err)
 		}
@@ -128,4 +141,26 @@ SELECT sku, content FROM products WHERE sku IN (?)
 			PB: &product,
 		}
 	}), nil
+}
+
+func (r *CacheRepo) InsertProducts(ctx context.Context, products []*pb.Product) {
+	contents := mapSlice(products, func(p *pb.Product) ProductContent {
+		data, err := json.Marshal(p)
+		if err != nil {
+			panic(err)
+		}
+		return ProductContent{
+			Sku:     p.Sku,
+			Content: data,
+		}
+	})
+
+	query := `
+INSERT INTO products (sku, content)
+VALUES (:sku, :content)
+`
+	_, err := r.db.NamedExecContext(ctx, query, contents)
+	if err != nil {
+		panic(err)
+	}
 }
