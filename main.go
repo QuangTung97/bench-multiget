@@ -100,7 +100,7 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 	const numSkusPerBatch = 20
 	const numBatches = numProducts / numSkusPerBatch
 
-	const numLoops = 1_000
+	const numLoops = 10_000
 
 	start := time.Now()
 
@@ -120,14 +120,17 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 			}
 		}()
 	}
+
 	wg.Wait()
 
 	d := time.Since(start)
 	fmt.Println("TOTAL TIME:", d)
+	fmt.Println("BATCH SIZE:", numSkusPerBatch)
 	fmt.Println("TOTAL THREADS:", numThreads)
 	fmt.Println("TOTAL KEYS:", numThreads*numLoops*numSkusPerBatch)
 	fmt.Println("TOTAL MISSES:", stats.MissCount.Load())
 	fmt.Println("TOTAL HITS:", stats.HitCount.Load())
+	fmt.Println("GETS per Second:", numThreads*numLoops*numSkusPerBatch/d.Seconds())
 }
 
 func benchMultiGetFromElastic(db *sqlx.DB) {
@@ -141,7 +144,7 @@ func benchMultiGetFromElastic(db *sqlx.DB) {
 	const numSkusPerBatch = 20
 	const numBatches = numProducts / numSkusPerBatch
 
-	const numLoops = 1_000
+	const numLoops = 10_000
 
 	start := time.Now()
 	var wg sync.WaitGroup
@@ -168,15 +171,16 @@ func benchMultiGetFromElastic(db *sqlx.DB) {
 	fmt.Println("BATCH SIZE:", numSkusPerBatch)
 	fmt.Println("TOTAL KEYS:", numThreads*numLoops*numSkusPerBatch)
 	fmt.Println("TOTAL BYTES:", totalBytes.Load())
+	fmt.Println("GETS per Second:", numThreads*numLoops*numSkusPerBatch/d.Seconds())
 }
 
 func main() {
 	db := sqlx.MustConnect("mysql", "root:1@tcp(localhost:3306)/bench?parseTime=true")
 	// doMigrate(db)
 	// insertProducts(db)
-	benchMultiGetFromCache(db)
+	// benchMultiGetFromCache(db)
 	// r.SyncProducts()
-	// benchMultiGetFromElastic(db)
+	benchMultiGetFromElastic(db)
 
 	//var totalBytes atomic.Uint64
 	//repo := NewElasticRepo(db, "http://localhost:9200")

@@ -183,12 +183,13 @@ func parseResponse(body io.Reader) []*pb.Product {
 	}
 
 	return mapSlice(r.Hits.Hits, func(e responseHit) *pb.Product {
-		var p pb.Product
-		err := jsoniter.Unmarshal(e.Source, &p)
-		if err != nil {
-			panic(err)
-		}
-		return &p
+		//var p pb.Product
+		//err := jsoniter.Unmarshal(e.Source, &p)
+		//if err != nil {
+		//	panic(err)
+		//}
+		//return &p
+		return nil
 	})
 }
 
@@ -205,7 +206,10 @@ func (r *ElasticRepo) GetProducts(skus []string, totalBytes *atomic.Uint64) []*p
 		Bool boolQuery `json:"bool"`
 	}
 	type searchQuery struct {
-		Query searchObject `json:"query"`
+		Query        searchObject `json:"query"`
+		Source       any          `json:"_source,omitempty"`
+		Fields       []string     `json:"docvalue_fields,omitempty"`
+		StoredFields string       `json:"stored_fields,omitempty"`
 	}
 	var buf bytes.Buffer
 
@@ -220,6 +224,10 @@ func (r *ElasticRepo) GetProducts(skus []string, totalBytes *atomic.Uint64) []*p
 				},
 			},
 		},
+		// Source: []string{"sku", "attributes"},
+		Source:       false,
+		Fields:       []string{"sku"},
+		StoredFields: "_none_",
 	})
 	if err != nil {
 		panic(err)
