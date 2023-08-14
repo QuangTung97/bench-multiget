@@ -1,0 +1,75 @@
+===============================================
+Using memproxy
+client 10 threads
+4 connections
+Using gogo protobuf
+batch size 20
+-----------------------------------------------
+50296.7508299 Gets per second
+11000 bytes per object on Memcached
+=> 527 MB / second == 4Gbs
+
+
+TOTAL TIME: 2m12.047412365s
+TOTAL KEYS: 2000000
+TOTAL MISSES: 0
+TOTAL HITS: 2000000
+15151.5151515 Gets Per Second
+
+TOTAL TIME: 2m14.365699295s
+TOTAL KEYS: 2000000
+TOTAL MISSES: 0
+TOTAL HITS: 2000000
+
+===============================================
+
+
+===============================================
+Using elasticsearch
+WITHOUT PARSING PRODUCTS
+client 10 threads
+batch size 20
+-----------------------------------------------
+11191.9418019 Gets Per Second
+
+TOTAL BYTES: 1386488071
+73.9931764587 MB per second
+===============================================
+
+===============================================
+Using elasticsearch
+With parsing PRODUCTS using encoding/json
+client 10 threads
+batch size 20
+-----------------------------------------------
+200000 => 2m9.061563476s
+
+1550.3875969 Gets Per Second
+
+TOTAL TIME: 50.30643255s
+TOTAL THREADS: 10
+BATCH SIZE: 20
+TOTAL KEYS: 80000
+=> 1590.45725646 Gets per second
+===============================================
+
+===============================================
+Using elasticsearch
+With parsing PRODUCTS using JsonIter
+client 10 threads
+batch size 20
+-----------------------------------------------
+TOTAL TIME: 21.729928427s
+TOTAL THREADS: 10
+BATCH SIZE: 20
+TOTAL KEYS: 80000
+=> 3681.55837671 Gets Per Second
+
+TOTAL TIME: 58.837014088s
+TOTAL THREADS: 10
+BATCH SIZE: 20
+TOTAL KEYS: 200000
+=> 3399.22076435
+===============================================
+
+=> CPU ES to Memcached Ratio: 15 / 1

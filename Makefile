@@ -1,7 +1,10 @@
-.PHONY: all generate
+.PHONY: build run generate
 
-all:
-	go run main.go
+build:
+	go build -o bin/main
+
+run:
+	GOGC=off GOMEMLIMIT=512 ./bin/main
 
 generate:
 	protoc -I. --gofast_out=paths=source_relative:"./pb" cache.proto

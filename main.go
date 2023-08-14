@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -99,9 +100,10 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 	const numSkusPerBatch = 20
 	const numBatches = numProducts / numSkusPerBatch
 
-	const numLoops = 10_000
+	const numLoops = 1_000
 
 	start := time.Now()
+
 	var wg sync.WaitGroup
 	wg.Add(numThreads)
 
@@ -122,9 +124,50 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 
 	d := time.Since(start)
 	fmt.Println("TOTAL TIME:", d)
+	fmt.Println("TOTAL THREADS:", numThreads)
 	fmt.Println("TOTAL KEYS:", numThreads*numLoops*numSkusPerBatch)
 	fmt.Println("TOTAL MISSES:", stats.MissCount.Load())
 	fmt.Println("TOTAL HITS:", stats.HitCount.Load())
+}
+
+func benchMultiGetFromElastic(db *sqlx.DB) {
+	repo := NewElasticRepo(db, "http://localhost:9200")
+
+	allSkus := withIndex(numProducts, func(i int) string {
+		return fmt.Sprintf("SKU%07d", i+1)
+	})
+
+	const numThreads = 10
+	const numSkusPerBatch = 20
+	const numBatches = numProducts / numSkusPerBatch
+
+	const numLoops = 1_000
+
+	start := time.Now()
+	var wg sync.WaitGroup
+	wg.Add(numThreads)
+
+	var totalBytes atomic.Uint64
+
+	for th := 0; th < numThreads; th++ {
+		go func() {
+			defer wg.Done()
+
+			for i := 0; i < numLoops; i++ {
+				index := rand.Intn(numBatches) * numSkusPerBatch
+				skus := allSkus[index : index+numSkusPerBatch]
+				_ = repo.GetProducts(skus, &totalBytes)
+			}
+		}()
+	}
+	wg.Wait()
+
+	d := time.Since(start)
+	fmt.Println("TOTAL TIME:", d)
+	fmt.Println("TOTAL THREADS:", numThreads)
+	fmt.Println("BATCH SIZE:", numSkusPerBatch)
+	fmt.Println("TOTAL KEYS:", numThreads*numLoops*numSkusPerBatch)
+	fmt.Println("TOTAL BYTES:", totalBytes.Load())
 }
 
 func main() {
@@ -132,4 +175,11 @@ func main() {
 	// doMigrate(db)
 	// insertProducts(db)
 	benchMultiGetFromCache(db)
+	// r.SyncProducts()
+	// benchMultiGetFromElastic(db)
+
+	//var totalBytes atomic.Uint64
+	//repo := NewElasticRepo(db, "http://localhost:9200")
+	//products := repo.GetProducts([]string{"SKU0001350"}, &totalBytes)
+	//fmt.Println(products[0])
 }
