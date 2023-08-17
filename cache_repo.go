@@ -27,33 +27,14 @@ type ProductCacheKey struct {
 	Sku string
 }
 
-type ProductCacheValue struct {
-	PB *pb.Product
-}
-
-func (p ProductCacheValue) GetKey() ProductCacheKey {
-	return ProductCacheKey{
-		Sku: p.PB.Sku,
-	}
-}
-
-func (p ProductCacheValue) Marshal() ([]byte, error) {
-	return p.PB.Marshal()
-}
-
 func (k ProductCacheKey) String() string {
 	return fmt.Sprintf("p/%s", k.Sku)
 }
 
-func unmarshalProduct(data []byte) (ProductCacheValue, error) {
-	var p pb.Product
-	err := p.Unmarshal(data)
-	if err != nil {
-		return ProductCacheValue{}, err
+func getProductKey(p *pb.Product) ProductCacheKey {
+	return ProductCacheKey{
+		Sku: p.Sku,
 	}
-	return ProductCacheValue{
-		PB: &p,
-	}, err
 }
 
 func mapSlice[A, B any](input []A, fn func(e A) B) []B {
@@ -64,21 +45,25 @@ func mapSlice[A, B any](input []A, fn func(e A) B) []B {
 	return result
 }
 
-type GetProductFunc = func() (ProductCacheValue, error)
+type GetProductFunc = func() (CacheValue[*pb.Product], error)
 
 type Stats struct {
 	HitCount  atomic.Uint64
 	MissCount atomic.Uint64
 }
 
+func newProductProto() *pb.Product {
+	return &pb.Product{}
+}
+
 func (r *CacheRepo) GetProducts(ctx context.Context, skus []string, globalStats *Stats) []*pb.Product {
 	pipe := r.client.Pipeline(ctx)
 	defer pipe.Finish()
 
-	filler := item.NewMultiGetFiller[ProductCacheValue, ProductCacheKey](
-		r.getProductsForCache, ProductCacheValue.GetKey,
+	filler := item.NewMultiGetFiller[*pb.Product, ProductCacheKey](
+		r.getProductsForCache, getProductKey,
 	)
-	productCache := item.New[ProductCacheValue, ProductCacheKey](pipe, unmarshalProduct, filler)
+	productCache := NewCacheItem[*pb.Product, ProductCacheKey](pipe, newProductProto, filler)
 
 	fnList := mapSlice(skus, func(sku string) GetProductFunc {
 		return productCache.Get(ctx, ProductCacheKey{
@@ -97,7 +82,7 @@ func (r *CacheRepo) GetProducts(ctx context.Context, skus []string, globalStats 
 		if err != nil {
 			panic(err)
 		}
-		return resp.PB
+		return resp.Data
 	})
 }
 
@@ -106,7 +91,7 @@ type ProductContent struct {
 	Content []byte `db:"content"`
 }
 
-func (r *CacheRepo) getProductsForCache(ctx context.Context, keys []ProductCacheKey) ([]ProductCacheValue, error) {
+func (r *CacheRepo) getProductsForCache(ctx context.Context, keys []ProductCacheKey) ([]*pb.Product, error) {
 	if len(keys) == 0 {
 		return nil, nil
 	}
@@ -128,7 +113,7 @@ SELECT sku, content FROM products WHERE sku IN (?)
 	if err != nil {
 		return nil, err
 	}
-	return mapSlice(result, func(p ProductContent) ProductCacheValue {
+	return mapSlice(result, func(p ProductContent) *pb.Product {
 		var product pb.Product
 		err := json.Unmarshal(p.Content, &product)
 		if err != nil {
@@ -136,9 +121,7 @@ SELECT sku, content FROM products WHERE sku IN (?)
 		}
 
 		product.Sku = p.Sku
-		return ProductCacheValue{
-			PB: &product,
-		}
+		return &product
 	}), nil
 }
 

@@ -2,6 +2,8 @@ module bench-multiget
 
 go 1.19
 
+replace github.com/QuangTung97/go-memcache => /home/teko/golang/go-memcache
+
 require (
 	github.com/QuangTung97/memproxy v0.5.3-0.20230725024621-d06ef9c0b1ad
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
@@ -13,7 +15,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
-	github.com/QuangTung97/go-memcache v0.5.8-0.20230717150726-658addfa5569 // indirect
+	github.com/QuangTung97/go-memcache v0.5.8 // indirect
 	github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794 // indirect
 	github.com/chavacava/garif v0.0.0-20230227094218-b8c73b2037b8 // indirect
 	github.com/fatih/color v1.15.0 // indirect

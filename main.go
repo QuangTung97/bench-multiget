@@ -178,9 +178,9 @@ func main() {
 	db := sqlx.MustConnect("mysql", "root:1@tcp(localhost:3306)/bench?parseTime=true")
 	// doMigrate(db)
 	// insertProducts(db)
-	// benchMultiGetFromCache(db)
+	benchMultiGetFromCache(db)
 	// r.SyncProducts()
-	benchMultiGetFromElastic(db)
+	// benchMultiGetFromElastic(db)
 
 	//var totalBytes atomic.Uint64
 	//repo := NewElasticRepo(db, "http://localhost:9200")
