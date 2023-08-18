@@ -97,7 +97,7 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 	})
 
 	const numThreads = 10
-	const numSkusPerBatch = 20
+	const numSkusPerBatch = 40
 	const numBatches = numProducts / numSkusPerBatch
 
 	const numLoops = 10_000
@@ -130,7 +130,14 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 	fmt.Println("TOTAL KEYS:", numThreads*numLoops*numSkusPerBatch)
 	fmt.Println("TOTAL MISSES:", stats.MissCount.Load())
 	fmt.Println("TOTAL HITS:", stats.HitCount.Load())
-	fmt.Println("GETS per Second:", numThreads*numLoops*numSkusPerBatch/d.Seconds())
+
+	getsPerSecond := numThreads * numLoops * numSkusPerBatch / d.Seconds()
+	fmt.Println("GETS per Second:", getsPerSecond)
+
+	fmt.Println("TOTAL BYTES:", stats.TotalBytes.Load())
+	bytesPerSecond := float64(stats.TotalBytes.Load()) / d.Seconds()
+	fmt.Println("MB per second:", bytesPerSecond/1024/1024)
+	fmt.Println("Mb per second:", bytesPerSecond*8/1024/1024)
 }
 
 func benchMultiGetFromElastic(db *sqlx.DB) {

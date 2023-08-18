@@ -48,8 +48,9 @@ func mapSlice[A, B any](input []A, fn func(e A) B) []B {
 type GetProductFunc = func() (CacheValue[*pb.Product], error)
 
 type Stats struct {
-	HitCount  atomic.Uint64
-	MissCount atomic.Uint64
+	HitCount   atomic.Uint64
+	MissCount  atomic.Uint64
+	TotalBytes atomic.Uint64
 }
 
 func newProductProto() *pb.Product {
@@ -75,6 +76,7 @@ func (r *CacheRepo) GetProducts(ctx context.Context, skus []string, globalStats 
 		stats := productCache.GetStats()
 		globalStats.MissCount.Add(stats.FillCount)
 		globalStats.HitCount.Add(stats.HitCount)
+		globalStats.TotalBytes.Add(stats.TotalBytesRecv)
 	}()
 
 	return mapSlice(fnList, func(fn GetProductFunc) *pb.Product {
