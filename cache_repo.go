@@ -1,14 +1,16 @@
 package main
 
 import (
-	"bench-multiget/pb"
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync/atomic"
+
 	"github.com/QuangTung97/memproxy"
 	"github.com/QuangTung97/memproxy/item"
 	"github.com/jmoiron/sqlx"
-	"sync/atomic"
+
+	"bench-multiget/pb"
 )
 
 type CacheRepo struct {
@@ -57,6 +59,8 @@ func newProductProto() *pb.Product {
 	return &pb.Product{}
 }
 
+type GetState = item.GetState[CacheValue[*pb.Product], ProductCacheKey]
+
 func (r *CacheRepo) GetProducts(ctx context.Context, skus []string, globalStats *Stats) []*pb.Product {
 	pipe := r.client.Pipeline(ctx)
 	defer pipe.Finish()
@@ -66,8 +70,8 @@ func (r *CacheRepo) GetProducts(ctx context.Context, skus []string, globalStats 
 	)
 	productCache := NewCacheItem[*pb.Product, ProductCacheKey](pipe, newProductProto, filler)
 
-	fnList := mapSlice(skus, func(sku string) GetProductFunc {
-		return productCache.Get(ctx, ProductCacheKey{
+	fnList := mapSlice(skus, func(sku string) *GetState {
+		return productCache.GetFast(ctx, ProductCacheKey{
 			Sku: sku,
 		})
 	})
@@ -79,8 +83,8 @@ func (r *CacheRepo) GetProducts(ctx context.Context, skus []string, globalStats 
 		globalStats.TotalBytes.Add(stats.TotalBytesRecv)
 	}()
 
-	return mapSlice(fnList, func(fn GetProductFunc) *pb.Product {
-		resp, err := fn()
+	return mapSlice(fnList, func(fn *GetState) *pb.Product {
+		resp, err := fn.Result()
 		if err != nil {
 			panic(err)
 		}

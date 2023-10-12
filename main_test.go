@@ -1,9 +1,10 @@
 package main
 
 import (
+	"testing"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"testing"
 )
 
 func TestBenchmarkGetFromCache(t *testing.T) {
