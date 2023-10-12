@@ -1,15 +1,17 @@
 package main
 
 import (
-	"bench-multiget/pb"
 	"context"
 	"fmt"
-	"github.com/QuangTung97/memproxy/proxy"
-	"github.com/jmoiron/sqlx"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/QuangTung97/memproxy/proxy"
+	"github.com/jmoiron/sqlx"
+
+	"bench-multiget/pb"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -96,7 +98,7 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 		return fmt.Sprintf("SKU%07d", i+1)
 	})
 
-	const numThreads = 10
+	const numThreads = 8
 	const numSkusPerBatch = 40
 	const numBatches = numProducts / numSkusPerBatch
 
@@ -116,7 +118,10 @@ func benchMultiGetFromCache(db *sqlx.DB) {
 			for i := 0; i < numLoops; i++ {
 				index := rand.Intn(numBatches) * numSkusPerBatch
 				skus := allSkus[index : index+numSkusPerBatch]
-				_ = repo.GetProducts(context.Background(), skus, &stats)
+				products := repo.GetProducts(context.Background(), skus, &stats)
+				if products[0].Sku == "" {
+					panic("Not found product")
+				}
 			}
 		}()
 	}

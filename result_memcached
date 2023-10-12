@@ -1,0 +1,47 @@
+===========================================================================
+Old Memcache Version
+	github.com/QuangTung97/memproxy v0.5.3-0.20230725024621-d06ef9c0b1ad
+	github.com/QuangTung97/go-memcache v0.5.8 // indirect
+===========================================================================
+
+GOGC=off GOMEMLIMIT=512MiB ./bin/main
+TOTAL TIME: 40.296432652s
+BATCH SIZE: 40
+TOTAL THREADS: 8
+TOTAL KEYS: 3200000
+TOTAL MISSES: 0
+TOTAL HITS: 3200000
+GETS per Second: 79411.49599110176
+TOTAL BYTES: 29096324240
+MB per second: 688.6072861375085
+Mb per second: 5508.858289100068
+
+GOGC=off GOMEMLIMIT=512MiB ./bin/main
+TOTAL TIME: 37.00161004s
+BATCH SIZE: 40
+TOTAL THREADS: 8
+TOTAL KEYS: 3200000
+TOTAL MISSES: 0
+TOTAL HITS: 3200000
+GETS per Second: 86482.72322584587
+TOTAL BYTES: 29096639273
+MB per second: 749.9327066687156
+Mb per second: 5999.461653349725
+
+GOGC=off GOMEMLIMIT=512MiB ./bin/main
+TOTAL TIME: 39.688314542s
+BATCH SIZE: 40
+TOTAL THREADS: 8
+TOTAL KEYS: 3200000
+TOTAL MISSES: 0
+TOTAL HITS: 3200000
+GETS per Second: 80628.26645393603
+TOTAL BYTES: 29096985692
+MB per second: 699.1742597165526
+Mb per second: 5593.394077732421
+
+===========================================================================
+New Memcache Version
+	github.com/QuangTung97/memproxy v0.5.3-0.20230725024621-d06ef9c0b1ad
+	github.com/QuangTung97/go-memcache v0.5.8 // indirect
+===========================================================================
